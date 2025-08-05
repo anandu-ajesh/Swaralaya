@@ -119,14 +119,7 @@ function Leaderboard() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-100 text-gray-900 p-6 sm:p-10">
-      <h1
-        className="text-4xl sm:text-5xl font-extrabold text-center mb-10 tracking-tight text-indigo-800"
-        style={{ textShadow: "0 2px 4px rgba(0, 0, 0, 0.1)" }}
-      >
-        Leaderboard
-      </h1>
-
+    <div className="min-h-screen overflow-y-auto scrollbar-hide bg-gradient-to-br from-indigo-50 to-purple-100 text-gray-900 p-2 sm:p-10">
       {isLoading ? (
         <div className="flex items-center justify-center p-10">
           <div className="flex items-center gap-4 bg-white/80 rounded-lg p-6 shadow-lg backdrop-blur-sm">
@@ -147,112 +140,123 @@ function Leaderboard() {
           </div>
         </div>
       ) : (
-        <div className="max-w-7xl mx-auto bg-white/50 rounded-xl shadow-2xl p-6 overflow-x-auto backdrop-blur-sm">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-gray-300">
-                <th className="py-4 px-6 font-semibold text-lg sm:text-xl text-gray-900 bg-gray-100 border-r border-gray-300 sticky left-0">
-                  Event
-                </th>
-                {houses.map((house, houseIndex) => (
-                  <th
-                    key={house}
-                    className={`py-4 px-6 font-semibold text-lg sm:text-xl ${getHouseColorClass(house).headerBg} ${
-                      houseIndex < houses.length - 1 ? "border-r border-gray-300" : ""
-                    }`}
-                    colSpan={categories.length}
-                  >
-                    {house}
+        <div className="max-w-full mx-auto bg-white/50 rounded-xl shadow-2xl p-6 overflow-x-auto backdrop-blur-sm">
+          <div className="relative max-h-[90vh] overflow-y-auto scrollbar-hide">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-black sticky top-0 z-40">
+                  <th className="py-4 px-6 font-semibold text-lg sm:text-xl text-gray-900 bg-gray-100 border-r border-black sticky left-0 z-50">
+                    Event
                   </th>
-                ))}
-              </tr>
-              <tr className="border-b border-gray-300">
-                <th className="py-3 px-4 font-semibold text-sm sm:text-base text-gray-900 bg-gray-200 border-r border-gray-300 sticky left-0">
-                  {/* Empty header for event column */}
-                </th>
-                {houses.map((house, houseIndex) =>
-                  categories.map((category, catIndex) => (
+                  {houses.map((house, houseIndex) => (
                     <th
-                      key={`${house}-${category}`}
-                      className={`py-3 px-4 font-semibold text-sm sm:text-base ${getHouseColorClass(house).text} ${
-                        getHouseColorClass(house).bg
-                      } ${houseIndex < houses.length - 1 || catIndex < categories.length - 1 ? "border-r border-gray-300" : ""}`}
-                    >
-                      {category}
-                    </th>
-                  ))
-                )}
-              </tr>
-            </thead>
-            <tbody>
-              {allEvents.map((event, eventIndex) => (
-                <tr
-                  key={event}
-                  className="border-b border-gray-300 hover:bg-gray-50/50 transition-all duration-200"
-                >
-                  <td className="py-4 px-4 text-gray-900 text-sm sm:text-base bg-gray-100 border-r border-gray-300 sticky left-0">
-                    {event}
-                  </td>
-                  {houses.map((house, houseIndex) => {
-                    const houseData = leaderboardData.find((data) => data.house === house) || {
-                      categories: categories.reduce((acc, cat) => {
-                        acc[cat] = { events: {} };
-                        return acc;
-                      }, {}),
-                    };
-                    return categories.map((category, catIndex) => {
-                      const pointsArray = houseData.categories[category].events[event] || [];
-                      const displayText =
-                        pointsArray.length > 0
-                          ? pointsArray.length > 1
-                            ? pointsArray.join(" + ")
-                            : `${pointsArray[0]}`
-                          : "-";
-                      return (
-                        <td
-                          key={`${house}-${category}-${event}`}
-                          className={`py-4 px-4 ${getHouseColorClass(house).text} ${
-                            getHouseColorClass(house).bg
-                          } text-sm sm:text-base ${
-                            houseIndex < houses.length - 1 || catIndex < categories.length - 1
-                              ? "border-r border-gray-300"
-                              : ""
-                          }`}
-                        >
-                          {displayText}
-                        </td>
-                      );
-                    });
-                  })}
-                </tr>
-              ))}
-              <tr className="border-t border-gray-300">
-                <td
-                  className="py-4 px-6 text-gray-900 text-lg sm:text-xl font-bold bg-gray-200 border-r border-gray-300 sticky left-0"
-                >
-                  Total Points
-                </td>
-                {houses.map((house, index) => {
-                  const houseData = leaderboardData.find((data) => data.house === house) || {
-                    totalPoints: 0,
-                  };
-                  return (
-                    <td
                       key={house}
-                      className={`py-4 px-6 ${getHouseColorClass(house).text} ${
-                        getHouseColorClass(house).totalBg
-                      } text-lg sm:text-xl font-bold ${index < houses.length - 1 ? "border-r border-gray-300" : ""}`}
+                      className={`py-4 px-6 font-semibold text-lg sm:text-xl ${getHouseColorClass(house).headerBg} ${
+                        houseIndex < houses.length - 1 ? "border-r border-black" : ""
+                      }`}
                       colSpan={categories.length}
                     >
-                      {houseData.totalPoints}
+                      {house}
+                    </th>
+                  ))}
+                </tr>
+                <tr className="border-b border-black sticky top-[60px] z-40">
+                  <th className="py-3 px-4 font-semibold text-sm sm:text-base text-gray-900 bg-gray-200 border-r border-black sticky left-0 z-50">
+                    {/* Empty header for event column */}
+                  </th>
+                  {houses.map((house, houseIndex) =>
+                    categories.map((category, catIndex) => (
+                      <th
+                        key={`${house}-${category}`}
+                        className={`py-3 px-4 font-semibold text-sm sm:text-base ${getHouseColorClass(house).text} ${
+                          getHouseColorClass(house).bg
+                        } ${houseIndex < houses.length - 1 || catIndex < categories.length - 1 ? "border-r border-black" : ""}`}
+                      >
+                        {category}
+                      </th>
+                    ))
+                  )}
+                </tr>
+              </thead>
+              <tbody>
+                {allEvents.map((event, eventIndex) => (
+                  <tr
+                    key={event}
+                    className="border-b border-gray-900 hover:bg-gray-50/50 transition-all duration-200"
+                  >
+                    <td className="py-4 px-4 text-gray-900 text-sm sm:text-base bg-gray-100 border-r border-gray-900 sticky left-0 z-10">
+                      {event}
                     </td>
-                  );
-                })}
-              </tr>
-            </tbody>
-          </table>
+                    {houses.map((house, houseIndex) => {
+                      const houseData = leaderboardData.find((data) => data.house === house) || {
+                        categories: categories.reduce((acc, cat) => {
+                          acc[cat] = { events: {} };
+                          return acc;
+                        }, {}),
+                      };
+                      return categories.map((category, catIndex) => {
+                        const pointsArray = houseData.categories[category].events[event] || [];
+                        const displayText =
+                          pointsArray.length > 0
+                            ? pointsArray.length > 1
+                              ? pointsArray.join(" + ")
+                              : `${pointsArray[0]}`
+                            : "-";
+                        return (
+                          <td
+                            key={`${house}-${category}-${event}`}
+                            className={`py-4 px-4 ${getHouseColorClass(house).text} ${
+                              getHouseColorClass(house).bg
+                            } text-sm sm:text-base ${
+                              houseIndex < houses.length - 1 || catIndex < categories.length - 1
+                                ? "border-r border-gray-900"
+                                : ""
+                            }`}
+                          >
+                            {displayText}
+                          </td>
+                        );
+                      });
+                    })}
+                  </tr>
+                ))}
+                <tr className="border-t border-gray-900 sticky bottom-0 z-40">
+                  <td
+                    className="py-4 px-6 text-gray-900 text-lg sm:text-xl font-bold bg-gray-200 border-r border-gray-900 sticky left-0 z-50"
+                  >
+                    Total Points
+                  </td>
+                  {houses.map((house, index) => {
+                    const houseData = leaderboardData.find((data) => data.house === house) || {
+                      totalPoints: 0,
+                    };
+                    return (
+                      <td
+                        key={house}
+                        className={`py-4 px-6 ${getHouseColorClass(house).text} ${
+                          getHouseColorClass(house).totalBg
+                        } text-lg sm:text-xl font-bold ${index < houses.length - 1 ? "border-r border-gray-900" : ""}`}
+                        colSpan={categories.length}
+                      >
+                        {houseData.totalPoints}
+                      </td>
+                    );
+                  })}
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
+      <style jsx>{`
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none; /* IE and Edge */
+          scrollbar-width: none; /* Firefox */
+        }
+      `}</style>
     </div>
   );
 }
