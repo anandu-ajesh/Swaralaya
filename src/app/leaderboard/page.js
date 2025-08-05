@@ -71,7 +71,7 @@ function Leaderboard() {
         houses.forEach((house) => {
           houseData[house] = { totalPoints: 0, categories: {} };
           categories.forEach((category) => {
-            houseData[house].categories[category] = { events: [], points: 0 };
+            houseData[house].categories[category] = { events: {}, points: 0 };
           });
         });
 
@@ -86,10 +86,12 @@ function Leaderboard() {
         leaderboardList.forEach((entry) => {
           const { house, item, category, points } = entry;
           if (houseData[house] && categories.includes(category)) {
-            houseData[house].categories[category].events.push({
-              item,
-              points: Number(points),
-            });
+            // Initialize event if not present
+            if (!houseData[house].categories[category].events[item]) {
+              houseData[house].categories[category].events[item] = [];
+            }
+            // Add points to the event
+            houseData[house].categories[category].events[item].push(Number(points));
             houseData[house].categories[category].points += Number(points);
             houseData[house].totalPoints += Number(points);
           }
@@ -195,9 +197,13 @@ function Leaderboard() {
                   </td>
                   {leaderboardData.map((houseData, houseIndex) =>
                     categories.map((category, catIndex) => {
-                      const eventData = houseData.categories[category].events.find(
-                        (e) => e.item === event
-                      );
+                      const pointsArray = houseData.categories[category].events[event] || [];
+                      const displayText =
+                        pointsArray.length > 0
+                          ? pointsArray.length > 1
+                            ? pointsArray.join(" + ")
+                            : `${pointsArray[0]}`
+                          : "-";
                       return (
                         <td
                           key={`${houseData.house}-${category}-${event}`}
@@ -209,7 +215,7 @@ function Leaderboard() {
                               : ""
                           }`}
                         >
-                          {eventData ? `${eventData.points}` : "-"}
+                          {displayText}
                         </td>
                       );
                     })
