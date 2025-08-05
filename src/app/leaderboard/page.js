@@ -137,11 +137,16 @@ function Leaderboard() {
 
       const { scrollTop, scrollHeight, clientHeight } = scrollContainer;
 
-      // Check if reached bottom or top
-      if (scrollTop + clientHeight >= scrollHeight - 1) {
-        scrollDirection = -1; // Reverse to scroll up
-      } else if (scrollTop <= 0) {
-        scrollDirection = 1; // Reverse to scroll down
+      // Use a tolerance to handle floating-point precision issues
+      const tolerance = 2; // Pixels
+      const isAtBottom = scrollTop + clientHeight >= scrollHeight - tolerance;
+      const isAtTop = scrollTop <= tolerance;
+
+      // Reverse direction at bottom or top
+      if (isAtBottom) {
+        scrollDirection = -1; // Scroll up
+      } else if (isAtTop) {
+        scrollDirection = 1; // Scroll down
       }
 
       // Update scroll position
@@ -169,6 +174,8 @@ function Leaderboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-100 text-gray-900 p-2 sm:p-10">
+   
+
       {isLoading ? (
         <div className="flex items-center justify-center p-10">
           <div className="flex items-center gap-4 bg-white/80 rounded-lg p-6 shadow-lg backdrop-blur-sm">
@@ -205,7 +212,7 @@ function Leaderboard() {
                   {houses.map((house, houseIndex) => (
                     <th
                       key={house}
-                      className={`py-4 text-center px-6 font-semibold text-lg sm:text-xl text-white ${getHouseColorClass(house).headerBg} ${
+                      className={`py-4 text-center px-6 font-semibold text-lg sm:text-xl ${getHouseColorClass(house).headerBg} ${
                         houseIndex < houses.length - 1 ? "border-r border-black" : ""
                       }`}
                       colSpan={categories.length}
@@ -236,7 +243,7 @@ function Leaderboard() {
                 {allEvents.map((event, eventIndex) => (
                   <tr
                     key={event}
-                    className="border-b border-gray-900 hover:bg-gray-50/50 transition-all duration-[5000ms]"
+                    className="border-b border-gray-900 hover:bg-gray-50/50 transition-all duration-200"
                   >
                     <td className="py-4 px-4 text-gray-900 text-sm sm:text-base bg-gray-100 border-r border-gray-900 sticky left-0 z-10">
                       {event}
