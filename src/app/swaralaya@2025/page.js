@@ -33,6 +33,9 @@ function Swaralaya() {
   const [isSubmittingUpdate, setIsSubmittingUpdate] = useState(false);
   const [isSubmittingLeaderboard, setIsSubmittingLeaderboard] = useState(false);
 
+  // List of houses for dropdown
+  const houses = ["Nalanda", "Taxila", "Ujjain", "Vikramshila"];
+
   // Fetch events for dropdowns and event updates
   useEffect(() => {
     const isAuthenticated = localStorage.getItem("authToken") === "authenticated";
@@ -250,7 +253,7 @@ function Swaralaya() {
             <select
               value={selectedEventId || ""}
               onChange={(e) => handleEventSelect(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400 text-black"
             >
               <option value="" disabled>
                 Select an event
@@ -280,7 +283,7 @@ function Swaralaya() {
                     name="category"
                     value={formData.category}
                     onChange={handleInputChange}
-                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400 text-black"
                     required
                   />
                 </div>
@@ -293,7 +296,7 @@ function Swaralaya() {
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
-                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400 text-black"
                     required
                   />
                 </div>
@@ -306,7 +309,7 @@ function Swaralaya() {
                     name="time"
                     value={formData.time}
                     onChange={handleInputChange}
-                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400 text-black"
                     placeholder="e.g., 9:15 am - 9:35 am"
                     required
                   />
@@ -320,7 +323,7 @@ function Swaralaya() {
                     name="venue"
                     value={formData.venue}
                     onChange={handleInputChange}
-                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400 text-black"
                     required
                   />
                 </div>
@@ -364,7 +367,7 @@ function Swaralaya() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Event Name
                 </label>
-                <p className="w-full p-2 border border-gray-300 rounded bg-gray-100">
+                <p className="w-full p-2 border border-gray-300 rounded bg-gray-100 text-black">
                   {formData.name}
                 </p>
               </div>
@@ -372,7 +375,7 @@ function Swaralaya() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Category
                 </label>
-                <p className="w-full p-2 border border-gray-300 rounded bg-gray-100">
+                <p className="w-full p-2 border border-gray-300 rounded bg-gray-100 text-black">
                   {formData.category}
                 </p>
               </div>
@@ -386,7 +389,7 @@ function Swaralaya() {
                     name="winner"
                     value={formData.winner || ""}
                     onChange={handleInputChange}
-                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400 text-black"
                   />
                 </div>
                 <div className="mb-4">
@@ -398,7 +401,7 @@ function Swaralaya() {
                     name="second"
                     value={formData.second || ""}
                     onChange={handleInputChange}
-                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400 text-black"
                   />
                 </div>
                 <div className="mb-4">
@@ -410,7 +413,7 @@ function Swaralaya() {
                     name="third"
                     value={formData.third || ""}
                     onChange={handleInputChange}
-                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400 text-black"
                   />
                 </div>
                 <div className="mb-4">
@@ -471,35 +474,41 @@ function Swaralaya() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     House
                   </label>
-                  <input
-                    type="text"
+                  <select
                     name="house"
                     value={leaderboardFormData.house}
                     onChange={handleLeaderboardInputChange}
-                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400 text-black"
                     required
-                  />
+                  >
+                    <option value="" disabled>
+                      Select a house
+                    </option>
+                    {houses.map((house) => (
+                      <option key={house} value={house}>
+                        {house}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Item
                   </label>
-                  <select
+                  <input
+                    type="text"
                     name="item"
                     value={leaderboardFormData.item}
                     onChange={handleLeaderboardInputChange}
-                    className="w-full text-black p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    list="eventNames"
+                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400 text-black"
                     required
-                  >
-                    <option className="text-black" value="" disabled>
-                      Select an event
-                    </option>
+                  />
+                  <datalist id="eventNames">
                     {events.map((event) => (
-                      <option key={event.id} value={event.name}>
-                        {event.name}
-                      </option>
+                      <option key={event.id} value={event.name} />
                     ))}
-                  </select>
+                  </datalist>
                 </div>
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -509,10 +518,10 @@ function Swaralaya() {
                     name="category"
                     value={leaderboardFormData.category}
                     onChange={handleLeaderboardInputChange}
-                    className="w-full p-2 text-black border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400 text-black"
                     required
                   >
-                    <option className="text-black" value="" disabled>
+                    <option value="" disabled>
                       Select a category
                     </option>
                     {uniqueCategories.map((category) => (
@@ -531,7 +540,7 @@ function Swaralaya() {
                     name="points"
                     value={leaderboardFormData.points}
                     onChange={handleLeaderboardInputChange}
-                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400 text-black"
                     required
                   />
                 </div>
