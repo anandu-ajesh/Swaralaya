@@ -97,14 +97,12 @@ function Leaderboard() {
           }
         });
 
-        // Convert to array and sort by total points
-        const leaderboard = houses
-          .map((house) => ({
-            house,
-            totalPoints: houseData[house].totalPoints,
-            categories: houseData[house].categories,
-          }))
-          .sort((a, b) => b.totalPoints - a.totalPoints);
+        // Convert to array for leaderboard data
+        const leaderboard = houses.map((house) => ({
+          house,
+          totalPoints: houseData[house].totalPoints,
+          categories: houseData[house].categories,
+        }));
 
         setLeaderboardData(leaderboard);
         setAllEvents(sortedEvents);
@@ -195,8 +193,14 @@ function Leaderboard() {
                   <td className="py-4 px-4 text-gray-900 text-sm sm:text-base bg-gray-100 border-r border-gray-300 sticky left-0">
                     {event}
                   </td>
-                  {leaderboardData.map((houseData, houseIndex) =>
-                    categories.map((category, catIndex) => {
+                  {houses.map((house, houseIndex) => {
+                    const houseData = leaderboardData.find((data) => data.house === house) || {
+                      categories: categories.reduce((acc, cat) => {
+                        acc[cat] = { events: {} };
+                        return acc;
+                      }, {}),
+                    };
+                    return categories.map((category, catIndex) => {
                       const pointsArray = houseData.categories[category].events[event] || [];
                       const displayText =
                         pointsArray.length > 0
@@ -206,9 +210,9 @@ function Leaderboard() {
                           : "-";
                       return (
                         <td
-                          key={`${houseData.house}-${category}-${event}`}
-                          className={`py-4 px-4 ${getHouseColorClass(houseData.house).text} ${
-                            getHouseColorClass(houseData.house).bg
+                          key={`${house}-${category}-${event}`}
+                          className={`py-4 px-4 ${getHouseColorClass(house).text} ${
+                            getHouseColorClass(house).bg
                           } text-sm sm:text-base ${
                             houseIndex < houses.length - 1 || catIndex < categories.length - 1
                               ? "border-r border-gray-300"
@@ -218,8 +222,8 @@ function Leaderboard() {
                           {displayText}
                         </td>
                       );
-                    })
-                  )}
+                    });
+                  })}
                 </tr>
               ))}
               <tr className="border-t border-gray-300">
@@ -228,17 +232,22 @@ function Leaderboard() {
                 >
                   Total Points
                 </td>
-                {leaderboardData.map((houseData, index) => (
-                  <td
-                    key={houseData.house}
-                    className={`py-4 px-6 ${getHouseColorClass(houseData.house).text} ${
-                      getHouseColorClass(houseData.house).totalBg
-                    } text-lg sm:text-xl font-bold ${index < houses.length - 1 ? "border-r border-gray-300" : ""}`}
-                    colSpan={categories.length}
-                  >
-                    {houseData.totalPoints}
-                  </td>
-                ))}
+                {houses.map((house, index) => {
+                  const houseData = leaderboardData.find((data) => data.house === house) || {
+                    totalPoints: 0,
+                  };
+                  return (
+                    <td
+                      key={house}
+                      className={`py-4 px-6 ${getHouseColorClass(house).text} ${
+                        getHouseColorClass(house).totalBg
+                      } text-lg sm:text-xl font-bold ${index < houses.length - 1 ? "border-r border-gray-300" : ""}`}
+                      colSpan={categories.length}
+                    >
+                      {houseData.totalPoints}
+                    </td>
+                  );
+                })}
               </tr>
             </tbody>
           </table>
