@@ -13,7 +13,7 @@ function Leaderboard() {
   // Fixed categories
   const categories = ["I", "II", "III", "IV"];
   // Fixed houses
-  const houses = ["Ujjain", "Taxila", "Nalanda", "Vikramshila"];
+  const houses = ["Ujjain", "Nalanda", "Taxila", "Vikramshila"];
 
   // Function to get house-specific color classes
   const getHouseColorClass = (house) => {
