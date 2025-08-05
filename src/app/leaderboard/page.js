@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { db } from "@/lib/firebase-config";
 import { collection, onSnapshot } from "firebase/firestore";
 
@@ -9,6 +9,8 @@ function Leaderboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [allEvents, setAllEvents] = useState([]);
+  const scrollContainerRef = useRef(null);
+  const isPaused = useRef(false);
 
   // Fixed categories
   const categories = ["I", "II", "III", "IV"];
@@ -118,8 +120,55 @@ function Leaderboard() {
     return () => unsubscribe();
   }, []);
 
+  // Auto-scrolling logic
+  useEffect(() => {
+    if (!scrollContainerRef.current || isLoading || error || leaderboardData.length === 0) return;
+
+    const scrollContainer = scrollContainerRef.current;
+    const scrollSpeed = 0.5; // Pixels per frame (~30 pixels/second)
+    let scrollDirection = 1; // 1 for down, -1 for up
+    let animationFrameId;
+
+    const scroll = () => {
+      if (isPaused.current) {
+        animationFrameId = requestAnimationFrame(scroll);
+        return;
+      }
+
+      const { scrollTop, scrollHeight, clientHeight } = scrollContainer;
+
+      // Check if reached bottom or top
+      if (scrollTop + clientHeight >= scrollHeight - 1) {
+        scrollDirection = -1; // Reverse to scroll up
+      } else if (scrollTop <= 0) {
+        scrollDirection = 1; // Reverse to scroll down
+      }
+
+      // Update scroll position
+      scrollContainer.scrollTop += scrollDirection * scrollSpeed;
+
+      // Continue animation
+      animationFrameId = requestAnimationFrame(scroll);
+    };
+
+    // Start animation
+    animationFrameId = requestAnimationFrame(scroll);
+
+    // Cleanup on unmount
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [isLoading, error, leaderboardData]);
+
+  // Handle pause and resume on hover
+  const handleMouseEnter = () => {
+    isPaused.current = true;
+  };
+
+  const handleMouseLeave = () => {
+    isPaused.current = false;
+  };
+
   return (
-    <div className="min-h-screen overflow-y-auto scrollbar-hide bg-gradient-to-br from-indigo-50 to-purple-100 text-gray-900 p-2 sm:p-10">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-100 text-gray-900 p-2 sm:p-10">
       {isLoading ? (
         <div className="flex items-center justify-center p-10">
           <div className="flex items-center gap-4 bg-white/80 rounded-lg p-6 shadow-lg backdrop-blur-sm">
@@ -141,17 +190,22 @@ function Leaderboard() {
         </div>
       ) : (
         <div className="max-w-full mx-auto bg-white/50 rounded-xl shadow-2xl p-6 overflow-x-auto backdrop-blur-sm">
-          <div className="relative max-h-[90vh] overflow-y-auto scrollbar-hide">
+          <div
+            className="relative max-h-[82vh] overflow-y-auto scrollbar-hide"
+            ref={scrollContainerRef}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+          >
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-black sticky top-0 z-40">
-                  <th className="py-4 px-6 font-semibold text-lg sm:text-xl text-gray-900 bg-gray-100 border-r border-black sticky left-0 z-50">
+                  <th className="py-4 text-center px-6 font-semibold text-lg sm:text-xl text-gray-900 bg-gray-100 border-r border-black sticky left-0 z-50">
                     Event
                   </th>
                   {houses.map((house, houseIndex) => (
                     <th
                       key={house}
-                      className={`py-4 px-6 font-semibold text-lg sm:text-xl ${getHouseColorClass(house).headerBg} ${
+                      className={`py-4 text-center px-6 font-semibold text-lg sm:text-xl text-white ${getHouseColorClass(house).headerBg} ${
                         houseIndex < houses.length - 1 ? "border-r border-black" : ""
                       }`}
                       colSpan={categories.length}
@@ -168,7 +222,7 @@ function Leaderboard() {
                     categories.map((category, catIndex) => (
                       <th
                         key={`${house}-${category}`}
-                        className={`py-3 px-4 font-semibold text-sm sm:text-base ${getHouseColorClass(house).text} ${
+                        className={`py-3 text-center px-4 font-semibold text-sm sm:text-base ${getHouseColorClass(house).text} ${
                           getHouseColorClass(house).bg
                         } ${houseIndex < houses.length - 1 || catIndex < categories.length - 1 ? "border-r border-black" : ""}`}
                       >
@@ -182,7 +236,7 @@ function Leaderboard() {
                 {allEvents.map((event, eventIndex) => (
                   <tr
                     key={event}
-                    className="border-b border-gray-900 hover:bg-gray-50/50 transition-all duration-200"
+                    className="border-b border-gray-900 hover:bg-gray-50/50 transition-all duration-[5000ms]"
                   >
                     <td className="py-4 px-4 text-gray-900 text-sm sm:text-base bg-gray-100 border-r border-gray-900 sticky left-0 z-10">
                       {event}
@@ -235,7 +289,7 @@ function Leaderboard() {
                         key={house}
                         className={`py-4 px-6 ${getHouseColorClass(house).text} ${
                           getHouseColorClass(house).totalBg
-                        } text-lg sm:text-xl font-bold ${index < houses.length - 1 ? "border-r border-gray-900" : ""}`}
+                        } text-lg text-center sm:text-xl font-bold ${index < houses.length - 1 ? "border-r border-gray-900" : ""}`}
                         colSpan={categories.length}
                       >
                         {houseData.totalPoints}
