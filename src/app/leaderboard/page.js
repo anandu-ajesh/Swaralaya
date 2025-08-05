@@ -212,7 +212,7 @@ function Leaderboard() {
                   {houses.map((house, houseIndex) => (
                     <th
                       key={house}
-                      className={`py-4 text-center px-6 font-semibold text-lg sm:text-xl ${getHouseColorClass(house).headerBg} ${
+                      className={`py-4 text-center px-6 text-white font-semibold text-lg sm:text-xl ${getHouseColorClass(house).headerBg} ${
                         houseIndex < houses.length - 1 ? "border-r border-black" : ""
                       }`}
                       colSpan={categories.length}
