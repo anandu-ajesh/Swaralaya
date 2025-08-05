@@ -8,20 +8,51 @@ function Leaderboard() {
   const [leaderboardData, setLeaderboardData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const [allEvents, setAllEvents] = useState([]);
 
-  // Function to get gradient background class based on house name
+  // Fixed categories
+  const categories = ["I", "II", "III", "IV"];
+  // Fixed houses
+  const houses = ["Nalanda", "Taxila", "Ujjain", "Vikramshila"];
+
+  // Function to get house-specific color classes
   const getHouseColorClass = (house) => {
-    switch (house.toLowerCase()) {
-      case "nalanda":
-        return "bg-gradient-to-r from-blue-500 to-blue-300";
-      case "taxila":
-        return "bg-gradient-to-r from-green-500 to-green-300";
-      case "ujjain":
-        return "bg-gradient-to-r from-yellow-400 to-yellow-200";
-      case "vikramshila":
-        return "bg-gradient-to-r from-red-500 to-red-300";
+    switch (house) {
+      case "Nalanda":
+        return {
+          bg: "bg-blue-100",
+          headerBg: "bg-blue-500 text-white",
+          text: "text-blue-900",
+          totalBg: "bg-blue-200",
+        };
+      case "Taxila":
+        return {
+          bg: "bg-green-100",
+          headerBg: "bg-green-500 text-white",
+          text: "text-green-900",
+          totalBg: "bg-green-200",
+        };
+      case "Ujjain":
+        return {
+          bg: "bg-yellow-100",
+          headerBg: "bg-yellow-500 text-gray-900",
+          text: "text-yellow-900",
+          totalBg: "bg-yellow-200",
+        };
+      case "Vikramshila":
+        return {
+          bg: "bg-red-100",
+          headerBg: "bg-red-500 text-white",
+          text: "text-red-900",
+          totalBg: "bg-red-200",
+        };
       default:
-        return "bg-gradient-to-r from-gray-400 to-gray-300";
+        return {
+          bg: "bg-white",
+          headerBg: "bg-gray-500 text-white",
+          text: "text-gray-900",
+          totalBg: "bg-gray-200",
+        };
     }
   };
 
@@ -35,25 +66,46 @@ function Leaderboard() {
           ...doc.data(),
         }));
 
-        // Group by house and sort by total points
-        const housePoints = {};
-
-        leaderboardList.forEach((entry) => {
-          const { house, item, category, points } = entry;
-          housePoints[house] = housePoints[house] || { points: 0, events: [] };
-          housePoints[house].points += Number(points);
-          housePoints[house].events.push({ item, category, points });
+        // Initialize house data with all categories
+        const houseData = {};
+        houses.forEach((house) => {
+          houseData[house] = { totalPoints: 0, categories: {} };
+          categories.forEach((category) => {
+            houseData[house].categories[category] = { events: [], points: 0 };
+          });
         });
 
-        const leaderboard = Object.entries(housePoints)
-          .map(([house, data]) => ({
+        // Collect all unique events
+        const uniqueEvents = new Set();
+        leaderboardList.forEach((entry) => {
+          uniqueEvents.add(entry.item);
+        });
+        const sortedEvents = Array.from(uniqueEvents).sort();
+
+        // Populate events and points
+        leaderboardList.forEach((entry) => {
+          const { house, item, category, points } = entry;
+          if (houseData[house] && categories.includes(category)) {
+            houseData[house].categories[category].events.push({
+              item,
+              points: Number(points),
+            });
+            houseData[house].categories[category].points += Number(points);
+            houseData[house].totalPoints += Number(points);
+          }
+        });
+
+        // Convert to array and sort by total points
+        const leaderboard = houses
+          .map((house) => ({
             house,
-            points: data.points,
-            events: data.events,
+            totalPoints: houseData[house].totalPoints,
+            categories: houseData[house].categories,
           }))
-          .sort((a, b) => b.points - a.points); // Sort by points descending
+          .sort((a, b) => b.totalPoints - a.totalPoints);
 
         setLeaderboardData(leaderboard);
+        setAllEvents(sortedEvents);
         setIsLoading(false);
       },
       (error) => {
@@ -67,71 +119,121 @@ function Leaderboard() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-indigo-100 text-black p-6 sm:p-10">
-      <h1 className="text-4xl sm:text-5xl font-bold text-center mb-10 tracking-tight" style={{ textShadow: "0 0 10px rgba(255, 255, 255, 0.3)" }}>
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-100 text-gray-900 p-6 sm:p-10">
+      <h1
+        className="text-4xl sm:text-5xl font-extrabold text-center mb-10 tracking-tight text-indigo-800"
+        style={{ textShadow: "0 2px 4px rgba(0, 0, 0, 0.1)" }}
+      >
         Leaderboard
       </h1>
 
       {isLoading ? (
         <div className="flex items-center justify-center p-10">
-          <div className="flex items-center gap-4 bg-white/10 rounded-lg p-6 shadow-lg">
-            <div className="w-8 h-8 border-4 border-t-blue-500 border-blue-200 rounded-full animate-spin"></div>
-            <p className="text-lg sm:text-xl font-medium">Loading leaderboard...</p>
+          <div className="flex items-center gap-4 bg-white/80 rounded-lg p-6 shadow-lg backdrop-blur-sm">
+            <div className="w-8 h-8 border-4 border-t-indigo-500 border-indigo-200 rounded-full animate-spin"></div>
+            <p className="text-lg sm:text-xl font-medium text-indigo-700">Loading leaderboard...</p>
           </div>
         </div>
       ) : error ? (
         <div className="flex justify-center p-10">
-          <div className="bg-white/10 rounded-lg p-6 shadow-lg text-center text-red-300 text-lg sm:text-xl">
+          <div className="bg-white/80 rounded-lg p-6 shadow-lg backdrop-blur-sm text-center text-red-600 text-lg sm:text-xl">
             {error}
           </div>
         </div>
       ) : leaderboardData.length === 0 ? (
         <div className="flex justify-center p-10">
-          <div className="bg-white/10 rounded-lg p-6 shadow-lg text-center text-lg sm:text-xl">
+          <div className="bg-white/80 rounded-lg p-6 shadow-lg backdrop-blur-sm text-center text-lg sm:text-xl text-gray-700">
             No leaderboard data available
           </div>
         </div>
       ) : (
-        <div className="max-w-6xl mx-auto bg-white/10 rounded-xl shadow-2xl p-6">
+        <div className="max-w-7xl mx-auto bg-white/50 rounded-xl shadow-2xl p-6 overflow-x-auto backdrop-blur-sm">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-white/20 rounded-t-lg">
-                <th className="py-4 px-6 font-semibold text-lg sm:text-xl text-black/90">House</th>
-                <th className="py-4 px-6 font-semibold text-lg sm:text-xl text-black/90">Item</th>
-                <th className="py-4 px-6 font-semibold text-lg sm:text-xl text-black/90">Category</th>
-                <th className="py-4 px-6 font-semibold text-lg sm:text-xl text-black/90">Points</th>
-                <th className="py-4 px-6 font-semibold text-lg sm:text-xl text-black/90">Total Points</th>
+              <tr className="border-b border-gray-300">
+                <th className="py-4 px-6 font-semibold text-lg sm:text-xl text-gray-900 bg-gray-100 border-r border-gray-300 sticky left-0">
+                  Event
+                </th>
+                {houses.map((house, houseIndex) => (
+                  <th
+                    key={house}
+                    className={`py-4 px-6 font-semibold text-lg sm:text-xl ${getHouseColorClass(house).headerBg} ${
+                      houseIndex < houses.length - 1 ? "border-r border-gray-300" : ""
+                    }`}
+                    colSpan={categories.length}
+                  >
+                    {house}
+                  </th>
+                ))}
+              </tr>
+              <tr className="border-b border-gray-300">
+                <th className="py-3 px-4 font-semibold text-sm sm:text-base text-gray-900 bg-gray-200 border-r border-gray-300 sticky left-0">
+                  {/* Empty header for event column */}
+                </th>
+                {houses.map((house, houseIndex) =>
+                  categories.map((category, catIndex) => (
+                    <th
+                      key={`${house}-${category}`}
+                      className={`py-3 px-4 font-semibold text-sm sm:text-base ${getHouseColorClass(house).text} ${
+                        getHouseColorClass(house).bg
+                      } ${houseIndex < houses.length - 1 || catIndex < categories.length - 1 ? "border-r border-gray-300" : ""}`}
+                    >
+                      {category}
+                    </th>
+                  ))
+                )}
               </tr>
             </thead>
             <tbody>
-              {leaderboardData.map((houseData, index) =>
-                houseData.events.map((event, eventIndex) => (
-                  <tr
-                    key={`${houseData.house}-${eventIndex}`}
-                    className={`border-b border-white/10 ${getHouseColorClass(houseData.house)} bg-opacity-30 hover:bg-opacity-40 hover:scale-[1.01] transition-all duration-200`}
+              {allEvents.map((event, eventIndex) => (
+                <tr
+                  key={event}
+                  className="border-b border-gray-300 hover:bg-gray-50/50 transition-all duration-200"
+                >
+                  <td className="py-4 px-4 text-gray-900 text-sm sm:text-base bg-gray-100 border-r border-gray-300 sticky left-0">
+                    {event}
+                  </td>
+                  {leaderboardData.map((houseData, houseIndex) =>
+                    categories.map((category, catIndex) => {
+                      const eventData = houseData.categories[category].events.find(
+                        (e) => e.item === event
+                      );
+                      return (
+                        <td
+                          key={`${houseData.house}-${category}-${event}`}
+                          className={`py-4 px-4 ${getHouseColorClass(houseData.house).text} ${
+                            getHouseColorClass(houseData.house).bg
+                          } text-sm sm:text-base ${
+                            houseIndex < houses.length - 1 || catIndex < categories.length - 1
+                              ? "border-r border-gray-300"
+                              : ""
+                          }`}
+                        >
+                          {eventData ? `${eventData.points}` : "-"}
+                        </td>
+                      );
+                    })
+                  )}
+                </tr>
+              ))}
+              <tr className="border-t border-gray-300">
+                <td
+                  className="py-4 px-6 text-gray-900 text-lg sm:text-xl font-bold bg-gray-200 border-r border-gray-300 sticky left-0"
+                >
+                  Total Points
+                </td>
+                {leaderboardData.map((houseData, index) => (
+                  <td
+                    key={houseData.house}
+                    className={`py-4 px-6 ${getHouseColorClass(houseData.house).text} ${
+                      getHouseColorClass(houseData.house).totalBg
+                    } text-lg sm:text-xl font-bold ${index < houses.length - 1 ? "border-r border-gray-300" : ""}`}
+                    colSpan={categories.length}
                   >
-                    {eventIndex === 0 && (
-                      <td
-                        className="py-4 px-6 text-white text-base sm:text-lg font-bold"
-                        rowSpan={houseData.events.length}
-                      >
-                        {houseData.house}
-                      </td>
-                    )}
-                    <td className="py-4 px-6 text-white text-base sm:text-lg">{event.item}</td>
-                    <td className="py-4 px-6 text-white text-base sm:text-lg">{event.category}</td>
-                    <td className="py-4 px-6 text-white text-base sm:text-lg">{event.points}</td>
-                    {eventIndex === 0 && (
-                      <td
-                        className="py-4 px-6 text-black lg:text-2xl text-lg font-bold"
-                        rowSpan={houseData.events.length}
-                      >
-                        {houseData.points}
-                      </td>
-                    )}
-                  </tr>
-                ))
-              )}
+                    {houseData.totalPoints}
+                  </td>
+                ))}
+              </tr>
             </tbody>
           </table>
         </div>
