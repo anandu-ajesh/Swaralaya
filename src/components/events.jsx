@@ -18,6 +18,19 @@ function Events() {
   const [error, setError] = useState("");
   const { Canvas } = useQRCode();
 
+  // Function to determine background color based on house name
+  const getHouseBackground = (place) => {
+    if (!place) return "from-gray-400 to-gray-600";
+    const houseName = place.split(" - ")[1] || "";
+    const lowerHouse = houseName.toLowerCase();
+    if (lowerHouse.includes("red")) return "from-red-500 to-red-700";
+    if (lowerHouse.includes("blue")) return "from-blue-500 to-blue-700";
+    if (lowerHouse.includes("green")) return "from-green-500 to-green-700";
+    if (lowerHouse.includes("yellow")) return "from-yellow-500 to-yellow-700";
+    return "from-gray-400 to-gray-600"; // Default fallback
+  };
+
+  // Fetch data from Firestore
   useEffect(() => {
     const unsubscribe = onSnapshot(
       collection(db, "events"),
@@ -39,6 +52,7 @@ function Events() {
     return () => unsubscribe();
   }, []);
 
+  // Auto-slide
   useEffect(() => {
     if (isPaused || events.length === 0 || isLoading) return;
 
@@ -51,6 +65,7 @@ function Events() {
     return () => clearInterval(interval);
   }, [isPaused, events.length, isLoading]);
 
+  // Scroll slider
   useEffect(() => {
     if (sliderRef.current && events.length > 0 && !isLoading) {
       sliderRef.current.scrollTo({
@@ -144,7 +159,7 @@ function Events() {
                   {event.completed ? (
                     <div className="flex flex-col items-center gap-4 sm:gap-6 mt-6 sm:mt-8 max-w-md mx-auto">
                       {event.winner && (
-                        <div className="relative w-full bg-gradient-to-r from-yellow-500 to-yellow-700 rounded-lg p-4 sm:p-6 shadow-2xl transform hover:scale-105 transition-all duration-300">
+                        <div className={`relative w-full bg-gradient-to-r ${getHouseBackground(event.winner)} rounded-lg p-4 sm:p-6 shadow-2xl transform hover:scale-105 transition-all duration-300`}>
                           <div className="flex items-center gap-4">
                             <div className="w-10 h-10 sm:w-12 sm:h-12 bg-yellow-300 rounded-full flex items-center justify-center flex-shrink-0">
                               <svg
@@ -168,7 +183,7 @@ function Events() {
                       )}
 
                       {event.second && (
-                        <div className="relative w-11/12 bg-gradient-to-r from-gray-400 to-gray-600 rounded-lg p-3 sm:p-5 shadow-lg transform hover:scale-105 transition-all duration-300">
+                        <div className={`relative w-11/12 bg-gradient-to-r ${getHouseBackground(event.second)} rounded-lg p-3 sm:p-5 shadow-lg transform hover:scale-105 transition-all duration-300`}>
                           <div className="flex items-center gap-4">
                             <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
                               <svg
@@ -192,7 +207,7 @@ function Events() {
                       )}
 
                       {event.third && (
-                        <div className="relative w-10/12 bg-gradient-to-r from-amber-600 to-amber-800 rounded-lg p-2 sm:p-4 shadow-lg transform hover:scale-105 transition-all duration-300">
+                        <div className={`relative w-10/12 bg-gradient-to-r ${getHouseBackground(event.third)} rounded-lg p-2 sm:p-4 shadow-lg transform hover:scale-105 transition-all duration-300`}>
                           <div className="flex items-center gap-4">
                             <div className="w-7 h-7 sm:w-8 sm:h-8 bg-amber-300 rounded-full flex items-center justify-center flex-shrink-0">
                               <svg
