@@ -11,9 +11,11 @@ function Leaderboard() {
   const [allEvents, setAllEvents] = useState([]);
   const scrollContainerRef = useRef(null);
   const isPaused = useRef(false);
+  const lastScrollTop = useRef(0);
+  const stallCounter = useRef(0);
 
   // Fixed categories
-  const categories = ["I", "II", "III", "IV"];
+  const categories = ["I", "II", "III", "IV", "C"];
   // Fixed houses
   const houses = ["Ujjain", "Nalanda", "Taxila", "Vikramshila"];
 
@@ -93,7 +95,9 @@ function Leaderboard() {
               houseData[house].categories[category].events[item] = [];
             }
             // Add points to the event
-            houseData[house].categories[category].events[item].push(Number(points));
+            houseData[house].categories[category].events[item].push(
+              Number(points)
+            );
             houseData[house].categories[category].points += Number(points);
             houseData[house].totalPoints += Number(points);
           }
@@ -122,12 +126,19 @@ function Leaderboard() {
 
   // Auto-scrolling logic
   useEffect(() => {
-    if (!scrollContainerRef.current || isLoading || error || leaderboardData.length === 0) return;
+    if (
+      !scrollContainerRef.current ||
+      isLoading ||
+      error ||
+      leaderboardData.length === 0
+    )
+      return;
 
     const scrollContainer = scrollContainerRef.current;
     const scrollSpeed = 0.5; // Pixels per frame (~30 pixels/second)
     let scrollDirection = 1; // 1 for down, -1 for up
     let animationFrameId;
+    const stallThreshold = 60; // Frames (~1 second at 60fps)
 
     const scroll = () => {
       if (isPaused.current) {
@@ -137,16 +148,32 @@ function Leaderboard() {
 
       const { scrollTop, scrollHeight, clientHeight } = scrollContainer;
 
-      // Use a tolerance to handle floating-point precision issues
-      const tolerance = 2; // Pixels
+      // Use a larger tolerance for browser compatibility
+      const tolerance = 5; // Pixels
       const isAtBottom = scrollTop + clientHeight >= scrollHeight - tolerance;
       const isAtTop = scrollTop <= tolerance;
 
-      // Reverse direction at bottom or top
-      if (isAtBottom) {
+      // Check for scroll stall
+      if (Math.abs(scrollTop - lastScrollTop.current) < 0.1) {
+        stallCounter.current += 1;
+      } else {
+        stallCounter.current = 0;
+      }
+      lastScrollTop.current = scrollTop;
+
+      // Reverse direction at bottom, top, or if stalled
+      if (
+        isAtBottom ||
+        (scrollDirection === 1 && stallCounter.current > stallThreshold)
+      ) {
         scrollDirection = -1; // Scroll up
-      } else if (isAtTop) {
+        stallCounter.current = 0;
+      } else if (
+        isAtTop ||
+        (scrollDirection === -1 && stallCounter.current > stallThreshold)
+      ) {
         scrollDirection = 1; // Scroll down
+        stallCounter.current = 0;
       }
 
       // Update scroll position
@@ -174,13 +201,13 @@ function Leaderboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-100 text-gray-900 p-2 sm:p-10">
-   
-
       {isLoading ? (
         <div className="flex items-center justify-center p-10">
           <div className="flex items-center gap-4 bg-white/80 rounded-lg p-6 shadow-lg backdrop-blur-sm">
             <div className="w-8 h-8 border-4 border-t-indigo-500 border-indigo-200 rounded-full animate-spin"></div>
-            <p className="text-lg sm:text-xl font-medium text-indigo-700">Loading leaderboard...</p>
+            <p className="text-lg sm:text-xl font-medium text-indigo-700">
+              Loading leaderboard...
+            </p>
           </div>
         </div>
       ) : error ? (
@@ -196,7 +223,7 @@ function Leaderboard() {
           </div>
         </div>
       ) : (
-        <div className="max-w-full mx-auto bg-white/50 rounded-xl shadow-2xl p-6 overflow-x-auto backdrop-blur-sm">
+        <div className="max-w-screen mx-auto bg-white/50 rounded-xl shadow-2xl overflow-x-auto backdrop-blur-sm">
           <div
             className="relative max-h-[82vh] overflow-y-auto scrollbar-hide"
             ref={scrollContainerRef}
@@ -212,8 +239,12 @@ function Leaderboard() {
                   {houses.map((house, houseIndex) => (
                     <th
                       key={house}
-                      className={`py-4 text-center px-6 text-white font-semibold text-lg sm:text-xl ${getHouseColorClass(house).headerBg} ${
-                        houseIndex < houses.length - 1 ? "border-r border-black" : ""
+                      className={`py-4 text-center px-6 text-white font-semibold text-lg sm:text-xl ${
+                        getHouseColorClass(house).headerBg
+                      } ${
+                        houseIndex < houses.length - 1
+                          ? "border-r border-black"
+                          : ""
                       }`}
                       colSpan={categories.length}
                     >
@@ -229,9 +260,14 @@ function Leaderboard() {
                     categories.map((category, catIndex) => (
                       <th
                         key={`${house}-${category}`}
-                        className={`py-3 text-center px-4 font-semibold text-sm sm:text-base ${getHouseColorClass(house).text} ${
-                          getHouseColorClass(house).bg
-                        } ${houseIndex < houses.length - 1 || catIndex < categories.length - 1 ? "border-r border-black" : ""}`}
+                        className={`py-3 text-center px-4 font-semibold text-sm sm:text-base ${
+                          getHouseColorClass(house).text
+                        } ${getHouseColorClass(house).bg} ${
+                          houseIndex < houses.length - 1 ||
+                          catIndex < categories.length - 1
+                            ? "border-r border-black"
+                            : ""
+                        }`}
                       >
                         {category}
                       </th>
@@ -249,14 +285,17 @@ function Leaderboard() {
                       {event}
                     </td>
                     {houses.map((house, houseIndex) => {
-                      const houseData = leaderboardData.find((data) => data.house === house) || {
+                      const houseData = leaderboardData.find(
+                        (data) => data.house === house
+                      ) || {
                         categories: categories.reduce((acc, cat) => {
                           acc[cat] = { events: {} };
                           return acc;
                         }, {}),
                       };
                       return categories.map((category, catIndex) => {
-                        const pointsArray = houseData.categories[category].events[event] || [];
+                        const pointsArray =
+                          houseData.categories[category].events[event] || [];
                         const displayText =
                           pointsArray.length > 0
                             ? pointsArray.length > 1
@@ -266,10 +305,13 @@ function Leaderboard() {
                         return (
                           <td
                             key={`${house}-${category}-${event}`}
-                            className={`py-4 px-4 ${getHouseColorClass(house).text} ${
+                            className={`py-4 px-4 ${
+                              getHouseColorClass(house).text
+                            } ${
                               getHouseColorClass(house).bg
                             } text-sm sm:text-base ${
-                              houseIndex < houses.length - 1 || catIndex < categories.length - 1
+                              houseIndex < houses.length - 1 ||
+                              catIndex < categories.length - 1
                                 ? "border-r border-gray-900"
                                 : ""
                             }`}
@@ -282,21 +324,27 @@ function Leaderboard() {
                   </tr>
                 ))}
                 <tr className="border-t border-gray-900 sticky bottom-0 z-40">
-                  <td
-                    className="py-4 px-6 text-gray-900 text-lg sm:text-xl font-bold bg-gray-200 border-r border-gray-900 sticky left-0 z-50"
-                  >
+                  <td className="py-4 px-6 text-gray-900 text-lg sm:text-xl font-bold bg-gray-200 border-r border-gray-900 sticky left-0 z-50">
                     Total Points
                   </td>
                   {houses.map((house, index) => {
-                    const houseData = leaderboardData.find((data) => data.house === house) || {
+                    const houseData = leaderboardData.find(
+                      (data) => data.house === house
+                    ) || {
                       totalPoints: 0,
                     };
                     return (
                       <td
                         key={house}
-                        className={`py-4 px-6 ${getHouseColorClass(house).text} ${
+                        className={`py-4 px-6 ${
+                          getHouseColorClass(house).text
+                        } ${
                           getHouseColorClass(house).totalBg
-                        } text-lg text-center sm:text-xl font-bold ${index < houses.length - 1 ? "border-r border-gray-900" : ""}`}
+                        } text-lg text-center sm:text-xl font-bold ${
+                          index < houses.length - 1
+                            ? "border-r border-gray-900"
+                            : ""
+                        }`}
                         colSpan={categories.length}
                       >
                         {houseData.totalPoints}
