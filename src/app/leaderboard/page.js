@@ -200,7 +200,7 @@ function Leaderboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-100 text-gray-900 p-2 sm:p-10">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-100 text-gray-900 p-2">
       {isLoading ? (
         <div className="flex items-center justify-center p-10">
           <div className="flex items-center gap-4 bg-white/80 rounded-lg p-6 shadow-lg backdrop-blur-sm">
@@ -225,7 +225,7 @@ function Leaderboard() {
       ) : (
         <div className="max-w-screen mx-auto bg-white/50 rounded-xl shadow-2xl overflow-x-auto backdrop-blur-sm">
           <div
-            className="relative max-h-[82vh] overflow-y-auto scrollbar-hide"
+            className="relative max-h-[95vh] overflow-y-auto scrollbar-hide"
             ref={scrollContainerRef}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
@@ -299,7 +299,7 @@ function Leaderboard() {
                         const displayText =
                           pointsArray.length > 0
                             ? pointsArray.length > 1
-                              ? pointsArray.join(" + ")
+                              ? pointsArray.join("+")
                               : `${pointsArray[0]}`
                             : "-";
                         return (
